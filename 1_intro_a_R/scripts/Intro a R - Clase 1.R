@@ -196,6 +196,10 @@ base
 
 # Nos vamos a pasar la vida entera jugando con bases asi que por el momento pausa 
 
+####
+## Listas ##
+####    
+
 #################################################
 #### DIRECTORIOS E IMPORTAR BASES DE DATOS A R ##
 #################################################
