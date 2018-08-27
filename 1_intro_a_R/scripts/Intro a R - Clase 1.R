@@ -4,7 +4,7 @@ rm(list=ls())  ## estoy limpiando mi sesión de todo
 # Intro a R          ###
 # Clase 1            ###  
 # Objetos y bases    ###
-# Caro 14/02/18      ### 
+# Caro 27/08/18      ### 
 ########################
 
 # 1. Everything that exists is an object. 2. Everything that happens is a function call.
