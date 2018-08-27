@@ -196,9 +196,32 @@ base
 
 # Nos vamos a pasar la vida entera jugando con bases asi que por el momento pausa 
 
-####
+############
 ## Listas ##
-####    
+############
+
+# una lista es un vector cuyos objetos son objetos de distintos tipos / osea khe? ajá, así
+
+ls()
+str(base) # data base
+str(numeros) # factor 
+str(nombre_completo) # caracter
+
+mi_lista <- list(base, numeros, nombre_completo)
+mi_lista # ¿qué onda con los dobles corchetes acá?
+length(mi_lista)
+mi_lista[2]
+
+ncol(mi_lista[[1]])
+ncol(mi_lista[1]) # por???
+ 
+sublista = mi_lista[1]
+str(sublista) 
+
+sublista_2 = mi_lista[[1]]
+str(sublista_2) 
+
+# esto nos va a servir un buen para geográficos 
 
 #################################################
 #### DIRECTORIOS E IMPORTAR BASES DE DATOS A R ##
