@@ -10,10 +10,11 @@ setwd("~")
 # Metete al secretariado metodología vieja
 # http://secretariadoejecutivo.gob.mx/incidencia-delictiva/incidencia-delictiva-fuero-comun.php
 
+# Hasta abajooooo dice Datos de Incidencia Delictiva bla 
 # Descarga la base que está hasta abajo que se llama Estatal 1997 - 2017
 # decomprime el zip etc etc ... abre la base
 # ¿qué es un xlsb? es literal EL UNICO formato que no puede abrir R - entonces abranlo en excel y 
-# expórtenlo en .csv en un folder llamado input (oc mo dios te de a entender)
+# expórtenlo en .csv en un folder llamado input (ocomo dios te de a entender)
 
 
 # 1.- Crea tus directorios , uno al inp otro a un folder que sea out
