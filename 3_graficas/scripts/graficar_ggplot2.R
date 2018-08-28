@@ -10,30 +10,32 @@ setwd("~")
 # Pero las gráficas que sabe hacer por default son difíciles o feas o ambas y su sitnaxis es complicada / 
 # El tipo que escribió dplyr escibió un paquete  para graficar 
 # Grammar of Graphics - es parte del paquete tidyverse
+require(pacman)
+p_load(ggmosaic, ggrepel, treemapify, tidyverse)
 
-install.packages(c("ggmosaic", "ggrepel", "treemap")) # las unicas dos grafs que no trae ggplot2
-require(tidyverse)
 
 ## Directorios ###
 
-input = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/R_genero/Clase6/datos"
-grafs = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/R_genero/Clase6/grafs"
+input = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/3_graficas/datos"
+grafs = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/3_graficas/grafs"
 
 ## Vamos a importar 3 bases que habíamos procesado ya en otras clases ###
 
-sinais = read.csv(paste(input, "base_cruda.csv", sep="/"), as.is = T, stringsAsFactors = F)
-envipe = read.csv(paste(input, "envipe_grafs.csv", sep="/"), as.is = T, stringsAsFactors = F)
-snsp   = read.csv(paste(input, "tasa_feminicidos_estatal.csv", sep="/"), as.is = T, stringsAsFactors = F)
+sinais = read.csv(paste(input, "base_cruda.csv", sep="/"), as.is = T, stringsAsFactors = F, fileEncoding = "UTF-8")
+envipe = read.csv(paste(input, "envipe_grafs.csv", sep="/"), as.is = T, stringsAsFactors = F, fileEncoding = "UTF-8")
+snsp   = read.csv(paste(input, "tasa_feminicidos_estatal.csv", sep="/"), as.is = T, stringsAsFactors = F, fileEncoding = "UTF-8")
 
-## GGplot2 funciona con 3 cosas: 1) Qué base 2) Qué geom o figura 3)  Qué ejes, Titulos etc. en el aesthethic
+## GGplot2 funciona con 3 cosas: 
+# 1) Qué base 
+# 2) Qué geom o figura 
+# 3) Qué ejes, Titulos etc. en el aesthethic
 ## Para decirle qué gráfica queremos hacer - se lo decimos con el geom. 
-
 
 View(envipe) # ¿Cómo graficarían esto? 
 
 # ggplot(data = que data, aes(x = que en equis, y = que en equis, color = que variable da el color), otras opciones)
 # emepzamos siempre con ggplot()
-ggplot(data=envipe) # si corro solo esto no pasa nada - no le he dicho que haceeeer
+ggplot(data=envipe) # si corro solo esto no pasa nada - no le he dicho que haceeeer solo me hace un marco vacío
 
 ggplot(data=envipe, aes(x = trabajo, y= Hombres)) # qué pasa? ya le dijimos qué ejes y que data pero no qué grafica
 
@@ -56,7 +58,7 @@ ggplot() +
 geom_bar(data=envipe, aes(x = trabajo, y= Hombres, color =trabajo), stat="identity") # que hace color
 
 ggplot() +
-geom_bar(data=envipe, aes(x = trabajo, y= Hombres, fill =trabajo), stat="identity") # va mejor
+geom_bar(data=envipe, aes(x = trabajo, y= Hombres, fill =trabajo), stat="identity") # qué hace fill
 
 # y si queremos saber el porcentaje? 
 ggplot(data=envipe, aes(x = trabajo, y= Hombres)) +
@@ -117,7 +119,8 @@ geom_text(aes(label=porcentaje), position=position_dodge(width=1)) +
 labs(title ="Porcentaje de Personas según su ocupación en la última semana", 
      subtitle="por sexo", x = "", y = "Porcentaje", caption = "Fuente: Envipe 2017") + 
 theme_minimal() +
-theme(axis.text.x = element_text(angle=90)) 
+theme(axis.text.x = element_text(angle=90, hjust =1),
+      title  = element_text(face="bold", size=14)) 
 # esta gráfica esta MUY decente - útima nerdes - los colores 
 # podemos darle un scale fill de manera manual
 # http://colorbrewer2.org/
@@ -129,7 +132,8 @@ scale_fill_manual(values=c("#253494","#bd0026")) +
 labs(title ="Porcentaje de Personas según su ocupación en la última semana", 
        subtitle="por sexo", x = "", y = "Porcentaje", caption = "Fuente: Envipe 2017") + 
 theme_minimal() +
-theme(axis.text.x = element_text(angle=90))   
+  theme(axis.text.x = element_text(angle=90, hjust =1),
+        title  = element_text(face="bold", size=14))  
   
 # cómo le cambiamos manualmente el color al texto ? IDEAS ? 
 
@@ -141,7 +145,8 @@ ggplot(data=envipe, aes(x = trabajo, y= porcentaje, fill=sexo)) +
   labs(title ="Porcentaje de Personas según su ocupación en la última semana", 
        subtitle="por sexo", x = "", y = "Porcentaje", caption = "Fuente: Envipe 2017") + 
   theme_minimal() +
-  theme(axis.text.x = element_text(angle=90))   
+  theme(axis.text.x = element_text(angle=90, hjust =1),
+        title  = element_text(face="bold", size=14)) 
 ggsave(paste(grafs, "1_barras.png", sep="/"), width=12, height=12)
 
 #################
@@ -155,11 +160,11 @@ ggplot(snsp) +
 geom_point(aes(x = tasa_total, y = tasa_arma_fuego), color ="red") # differencia con color afuera?
 
 ggplot(snsp) +
-geom_point(aes(x = tasa_total, y = tasa_arma_fuego), color ="red", size = 3) +
+geom_point(aes(x = tasa_total, y = tasa_arma_fuego), color ="blue", size = 3) +
 labs(title ="Tasa de Feminicidios por 100 mil mujeres", 
      subtitle="Total vs. Cometidos con Arma de Fuego", x = "Tasa Total", 
      y = "Tasa Arma de Fuego", caption = "Fuente: SENSP 2018") +
-theme_bw()
+theme_light() 
 ggsave(paste(grafs, "2_scatter_1.png", sep="/"), width=12, height=12)
 # super super exportable !  
 
@@ -239,8 +244,7 @@ ggplot(snsp) +
   scale_y_continuous(breaks=seq(from=0, to=7, by=.2)) + 
   scale_x_continuous(breaks=seq(from=0, to=7, by=.2)) 
 
-# ggrepel
-require(ggrepel)
+# ggrepel El paquete que prendimos / instalamos hasta arriba
 
 ggplot(snsp) +
   geom_point(aes(x = tasa_total, y = tasa_arma_fuego, color=as.factor(year)), size = 3) +
@@ -256,14 +260,14 @@ ggplot(snsp) +
 
           ggplot() +
           geom_point(data=snsp, aes(x = tasa_total, y = tasa_arma_fuego, color=as.factor(year)), size = 3) +
-          geom_text_repel(data=filter(snsp, tasa_total > 2.5 ), aes(x = tasa_total, y = tasa_arma_fuego, label=ent), size=3) + # la ÚNICA diferencia es el geom
+          geom_text_repel(data=filter(snsp, tasa_total > 2.5 | tasa_arma_fuego > .6), aes(x = tasa_total, y = tasa_arma_fuego, label=ent), size=3) + # por eso la flexibilidad de poner mil datas
           scale_color_manual(values=c("#7fcdbb","#1d91c0", "#081d58")) +
           labs(title ="Tasa de Feminicidios por 100 mil mujeres", 
                subtitle="Total vs. Cometidos con Arma de Fuego", x = "Tasa Total", 
                y = "Tasa Arma de Fuego", caption = "Fuente: SENSP 2018", color ="Año") +
           theme_bw() +
           scale_y_continuous(breaks=seq(from=0, to=7, by=.2)) + 
-          scale_x_continuous(breaks=seq(from=0, to=7, by=.2))  # Ya vieron porque es SUPER util poder poner diferentes data=??
+          scale_x_continuous(breaks=seq(from=0, to=7, by=.2))  
 ggsave(paste(grafs, "5_scatter_repel.png", sep="/"), width=12, height=12)  
 
 ################
@@ -284,13 +288,16 @@ geom_line(aes(x=anio_regis, y=tot_personas, color=sexo))
 
 ggplot(sinais_lineas) +
 geom_line(aes(x=anio_regis, y=tot_personas, color=sexo), size=1.2, linetype=5) +
-scale_color_manual(values=c("maroon","blue")) +
+geom_point(aes(x=anio_regis, y=tot_personas), color="black", size=4, shape=16) +
+scale_color_manual(values=c("#a50f15","#225ea8")) +
 labs(title ="Total de Homicidios según sexo", 
        subtitle="Por año de registro del homicidio", x = "", 
        y = "", caption = "Fuente: SIANIS", color ="Sexo de la víctima") +
   theme_bw() +
   scale_y_continuous(breaks=seq(from=0, to=25000, by=1000)) + 
-  scale_x_continuous(breaks=seq(from=2002, to=2016, by=1))  # Ya vieron porque es SUPER util poder poner diferentes data=??
+  scale_x_continuous(breaks=seq(from=2002, to=2016, by=1)) + 
+  theme(axis.text.x = element_text(face="bold", size = 12),
+             title  = element_text(face="bold", size=14)) 
 ggsave(paste(grafs, "6_lines.png", sep="/"), width=12, height=12)  
 
 rm(sinais_lineas)
@@ -339,7 +346,7 @@ coord_fixed()
 ##   ups.    ###
 ################
 
-require(treemap)  
+# treemapify
   
 tot_por_sex = group_by(sinais, sexo, escol)  
 tot_por_sex$tot = 1
@@ -355,19 +362,31 @@ tot_por_sex = group_by(tot_por_sex, sexo)
 tot_por_sex = mutate(tot_por_sex, tot_sexo = sum(total),
                      porcent = round(total / tot_sexo * 100, digits=1))
 
-treemap(tot_por_sex, index=c("sexo", "escol"), vSize=c("porcent"), 
-        vColor="index", type="index", title="Porcentaje segun escolaridad - por sexo 2002-2016", 
-        palette="Blues", title.legend="", border.col="grey", border.lwd=0.5)
 
-# son medio horribles y encima tienes que hacer esto para exportar
+ggplot(tot_por_sex, aes(area=total, fill=c(sexo), label=paste(escol, sexo))) + 
+geom_treemap() +
+geom_treemap_text(place = "centre", grow = T, color ="black")
 
-png(paste(grafs, "8_treemap.png", sep="/"), width=12, height=18, res=300)
-treemap(tot_por_sex, index=c("sexo", "escol"), vSize=c("porcent"), 
-        vColor="index", type="index", title="Porcentaje segun escolaridad - por sexo 2002-2016", 
-        palette="Blues", title.legend="", border.col="grey", border.lwd=0.5)
-dev.off()
+# si queremos subgrupo? 
+ggplot(tot_por_sex, aes(area=total, fill=escol , subgroup=sexo, label=paste(sexo, escol))) + 
+  geom_treemap() +
+  geom_treemap_text(place = "centre", grow = T, color ="black") +
+  geom_treemap_subgroup_border(color = "white")
 
-rm(tot_por_sex)
+ggplot(tot_por_sex, aes(area=total, fill=escol , subgroup=sexo, label=paste(sexo, escol))) + 
+  geom_treemap() +
+  geom_treemap_text(place = "centre", grow = T, color ="black") +
+  geom_treemap_subgroup_border(color = "white") +
+  labs(title="¿Qué escolaridad tenían las víctimas de homicidio?", subtitle = "2002 a 2016", 
+       caption="Fuente: INEGI", fill="Escolaridad ") +
+  theme_bw(base_size = 14) +
+  theme(plot.title = element_text(color = "black", size=16, hjust=0, face="bold"),
+        plot.caption = element_text(color= "black", size=10,face="bold" ),
+        axis.text.x = element_text(color="black", angle=90, size=10, hjust=1)) +
+  coord_fixed()
+ggsave(paste(graf, "8_treemap.jpg", sep="/"), width=12, height=12)
+
+
 ################
 ##   Areas   ###
 ## geom_area ###
@@ -400,7 +419,7 @@ ggplot(area, aes(x=anio_regis, y=porcent, fill=escolaridad)) +
                                  "#e0f3f8", "#abd9e9", "#4575b4")) +
       labs(title="Porcentaje de personas asesinadas por escolaridad \n 2002-2016",
            x="Año de registro", y="%", fill="Escolaridad") +
-      theme_classic()
+      theme_classic() # y así es como me di cuenta que habían cambiado escolaridad jajajajaja
 ggsave(paste(grafs, "9_area.png", sep="/"), width=12, height=12) 
 
 rm(area)
@@ -410,7 +429,7 @@ rm(area)
 ##  geom_mosaic   ###
 #####################
 
-require(ggmosaic)
+# require(ggmosaic)
 
 spine = group_by(sinais, edo_civil, sexo)  
 spine = filter(spine, edo_civil != "No especificado" & edo_civil !="Menor de 12" & sexo != "No especificado")
@@ -479,6 +498,6 @@ labs(y="Tasa de feminicidios por 100 mil mujeres",
 ggsave(paste(grafs, "11_jitter.png", sep="/"), width=12, height=12) 
 
 
-
+# geom_violin geom_segment geom_hline geom_vline 
 
 
