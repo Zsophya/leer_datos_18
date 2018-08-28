@@ -12,10 +12,10 @@ p_load(tidyverse, stringr, foreign)
 dir1 <- "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/2_procesar_datos/input" # poner ruta 
 dir2 <- "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/2_procesar_datos/output" # poner ruta
 
-datos <- read.csv(paste(dir1, "diputados.csv", sep="/"))
+datos <- read.csv(paste(dir1, "diputados.csv", sep="/")) # GUAT ! porque no?????
 
 # Qué está pasando? dice que es CSV pero claramente no está separado por comas sino por ' | '
-datos <- read.table(paste(dir1, "diputados.csv", sep="/" ), sep="|", header=T, stringsAsFactors=F)
+datos <- read.table(paste(dir1, "diputados.csv", sep="/" ), sep="|", header=T, stringsAsFactors=F, as.is = T, fileEncoding = "UTF-8") # que tantas opciones le puse?
 
 #Nuestros básicos, ¿qué tenemos?
 str(datos) #uff, 31 variables!
@@ -28,29 +28,28 @@ names(datos) #no pos cuanta info
 nrow(datos)
 datos <- datos[5:nrow(datos),]
 head(datos)
-#ojo, los nombres de los renglones son caracter, no son un conteo. Ahora nuestro primer rengón se llama "5"
+names(datos) # podríamos solo sustituir todo a mano, pero que hueva, si ya hay un renglón con los nombres ...
 
 vector_nombres <- datos[1,]
 vector_nombres <- as.vector(vector_nombres)
-names(datos)<- vector_nombres
+names(datos)   <- vector_nombres
 head(datos) #wups, todavía falta quitar un renglon
-
-nrow(datos)
 datos <- datos[2:nrow(datos),]
+
 names(datos)
 
 #listo, ahora cuales variables nos interesan?
 str(datos)
 
-table(datos$CONTABILIZADA, useNA="ifany") #nopos goao
-table(datos$OBSERVACIONES, useNA="ifany") #sólo nos vamos a quedar con los que no tengan nada aquí
-table(datos$TIPO_CASILLA, useNA="ifany")  # nos da igual
+table(datos$CONTABILIZADA, useNA="ifany") # qué significa esto?
+table(datos$OBSERVACIONES, useNA="ifany") # sólo nos vamos a quedar con los que no tengan nada aquí
+table(datos$TIPO_CASILLA, useNA="ifany")  # B.- Básica, C.- Contigua, E.- Extraordinaria, S.- Especial
 table(datos$UBICACION_CASILLA, useNA="ifany") # urbano/ rural
-table(datos$TIPO_ACTA, useNA="ifany") # los tipos 4 son de representación proporcional
-table(datos$TOTAL_CIUDADANOS_VOTARON, useNA="ifany") # salebye
+table(datos$TIPO_ACTA, datos$TIPO_CASILLA, useNA="ifany") # los tipos 4 son de representación proporcional, queremos saber quién ganó en el distrito
+table(datos$TOTAL_CIUDADANOS_VOTARON, useNA="ifany") #
 
-#subset 
-datos <- datos[datos$OBSERVACIONES==" " & datos$TIPO_ACTA!="4",]
+# subset con gramática de R, para que se acostumbren a todo
+datos <- datos[datos$OBSERVACIONES==" " & datos$TIPO_ACTA!="4",] # solo cuando no hubo bronca y quitamos las especiales de RP
 
 #el resto claramente nos interesa, pero en numéricos
 table(datos$OBSERVACIONES, useNA="ifany") # Listou
@@ -58,50 +57,63 @@ table(datos$TIPO_ACTA, useNA="ifany")
 
 #Ya no nos sirven
 head(datos)
-datos <- select(datos, -(ID_CASILLA:NUM_BOLETAS_EXTRAIDAS), -OBSERVACIONES, -CONTABILIZADA)
+datos = select(datos, -(ID_CASILLA:NUM_BOLETAS_EXTRAIDAS), -OBSERVACIONES, -CONTABILIZADA)
 str(datos)
 
 #Ahora volver numérico todas las votaciones
-datos$PAN <- as.numeric(datos$PAN) # que mega flojera, si algo me da flojera significa que hay otra manera
+datos$PAN <- as.numeric(datos$PAN) # que mega flojera, si algo me da flojera significa que hay otra manera / lapply sapply tapply son una JOYA
 
-votos <- select(datos, PAN:LISTA_NOMINAL)
-votos <- names(votos)
-datos[, votos] <- apply(datos[, votos], 2, function(x) as.numeric(x))
+# quiero volver numérico del PAN 4 - hasta lista nominal ncol
+datos[,4:ncol(datos)]
+datos[4:ncol(datos)] <- sapply(datos[,4:ncol(datos)], as.numeric) 
 str(datos)
 
-# primero subseteo con las variables que me interesan
-# luego sustituyo esa base subseteada con el vector de nombres
-# luego utilizo ese vector para ir de nombre en nombre sustituyendo como numérico, por eso ,votos define que columnas
-# apply es coo un loop sin ser loop... el 2 es sintaxis para columnas de la funcion apply... 
-# function(x) le dice que va a aplicar una funcion... luego le dices qué función
+# Tarea: ¿cómo hacer exactamente lo mismo pero usando mutate_at?
+
+##
+##
+
 
 # Nuestros datos están a nivel casilla, a nadie le interesan así, lo quiero a nivel distrito.
 # lo primero es el formato de nuestro distrito y estado, tiene que tener 5 cifras al juntarse
 
 datos$ESTADO <- as.numeric(datos$ESTADO)
-datos$DISTRITO <- as.numeric(datos$DISTRITO)
-
-datos$ESTADO  <- formatC(datos$ESTADO , width = 2, format = "d", flag = "0")
-datos$DISTRITO  <- formatC(datos$DISTRITO , width = 2, format = "d", flag = "0")
+datos$ESTADO <- formatC(datos$ESTADO , width = 2, format = "d", flag = "0")
+datos$DISTRITO  <- formatC(as.numeric(datos$DISTRITO), width = 2, format = "d", flag = "0") # anidar funciones es la sal de la vida
 
 datos$id <- paste0(datos$ESTADO, datos$DISTRITO)
 table(datos$id) # wu! 
 
+# qué onda con las alianzas? cuando es NA es que no hubo alianza
+
+datos = mutate(datos, coalicion_pri = ifelse(is.na(C_PRI_PVEM)==F, 1, 0),
+                      coalicion_prdpt = ifelse(is.na(C_PRD_PT)==F, 1, 0))
+
+datos$tot_prd = ifelse(datos$coalicion_prdpt==1, rowSums(datos[c("PRD", "PT", "C_PRD_PT")], na.rm = T), datos$PRD)
+datos$tot_pri = ifelse(datos$coalicion_pri==1, rowSums(datos[c("PRI", "PVEM", "C_PRI_PVEM")] ,na.rm = T), datos$PRI)
+
 # ahora si, colapsemos para tener datos a nivel distrito y no a nivel casilla
-
 datos <- group_by(datos, id)
-datos <- summarize(datos, pan = sum(PAN, na.rm = T), pri = sum(PRI , na.rm = T), 
-                          prd = sum(PRD , na.rm = T), pvem = sum(PVEM, na.rm = T), 
-                          pt = sum(PT, na.rm = T), mc = sum(MOVIMIENTO_CIUDADANO, na.rm = T), 
-                          nueva_a = sum(NUEVA_ALIANZA, na.rm = T), morena = sum(MORENA, na.rm = T), 
-                          ph = sum(PH, na.rm = T), ps = sum(PS, na.rm = T), c_pri_pvem=sum(C_PRI_PVEM, na.rm = T), 
-                          c_prd_pt = sum(C_PRD_PT, na.rm = T), cand_ind_1 = sum(CAND_IND_1, na.rm = T), 
-                          cand_ind_2 = sum(CAND_IND_2, na.rm = T), no_r = sum(NO_REGISTRADOS, na.rm = T), 
-                          nulos = sum(NULOS, na.rm = T), tot_votos= sum(TOTAL_VOTOS, na.rm = T), lista = sum(LISTA_NOMINAL, na.rm = T))
+datos <- summarize(datos, pan = sum(PAN, na.rm = T), 
+                          tot_pri = sum(tot_pri , na.rm = T), 
+                          tot_prd = sum(tot_prd , na.rm = T), 
+                          pvem = sum(PVEM, na.rm = T), 
+                          pt = sum(PT, na.rm = T), 
+                          mc = sum(MOVIMIENTO_CIUDADANO, na.rm = T), 
+                          nueva_a = sum(NUEVA_ALIANZA, na.rm = T), 
+                          morena = sum(MORENA, na.rm = T), 
+                          ph = sum(PH, na.rm = T), 
+                          ps = sum(PS, na.rm = T), 
+                          cand_ind_1 = sum(CAND_IND_1, na.rm = T), 
+                          cand_ind_2 = sum(CAND_IND_2, na.rm = T), 
+                          no_r = sum(NO_REGISTRADOS, na.rm = T), 
+                          nulos = sum(NULOS, na.rm = T), 
+                          tot_votos= sum(TOTAL_VOTOS, na.rm = T), 
+                          lista = sum(LISTA_NOMINAL, na.rm = T))
 
-datos <-ungroup(datos)
-datos <- rename(datos, id_distrito = id) 
-nrow(datos) # oh por dios, el mismo número que dipudados de mayoría relativa, osea que distritos
+datos = ungroup(datos) # ojo, ungroup es clave
+datos = rename(datos, id_distrito = id) 
+nrow(datos) # 300 oh por dios, el mismo número que dipudados de mayoría relativa, osea que distritos
 
 #ok pero, ¿quién ganó? aprovechemos para aprender a usar un loop
 
@@ -111,9 +123,7 @@ nrow(datos) # oh por dios, el mismo número que dipudados de mayoría relativa, 
 # de las tres columnas, sino deja pri
 
 datos <- group_by(datos, id_distrito) 
-datos <-   mutate(datos, pri = if_else(c_pri_pvem != 0 , sum(c_pri_pvem, pri, pvem), pri), 
-                         prd = if_else(c_prd_pt != 0, sum(c_prd_pt, prd, pt), prd), 
-                         d_votogan=max(pan, pri, prd, pvem, pt, mc, nueva_a, morena, ph, ps, cand_ind_1, cand_ind_2, na.rm=T))
+datos <- mutate(datos, d_votogan=max(pan, tot_pri, tot_prd, pvem, pt, mc, nueva_a, morena, ph, ps, cand_ind_1, cand_ind_2, na.rm=T))
 
 datos$d_gan <- as.character(NA)
 datos <- ungroup(datos)
@@ -124,7 +134,7 @@ datos <- ungroup(datos)
 # LOOP # 
 ########
 
-tempo <- select(datos, 2:15)
+tempo <- select(datos, 2:15) # nos quedamos solo con los competidores 
 
 for(x in 1:nrow(datos)){
   datos$d_gan[x] <- names(tempo)[which.max(tempo[x, 1:ncol(tempo)])]
