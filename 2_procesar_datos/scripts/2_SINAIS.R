@@ -9,7 +9,7 @@ setwd("~")
 
 # En realidad lo que primero se hace en un script es prender los paquetes
 
-install.packages("stringr")
+install.packages(c("stringr", "pacman"))
 require(tidyverse)
 require(stringr)
 require(foreign) 
@@ -20,13 +20,13 @@ catalogos = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_
       out = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/2_procesar_datos/output"
 
 # La estrategia de hoy va a ser abrir el csv de 2016 - procesarlo y
-# luego repretir el proceso de manera automatizada para 2003 a 2016
+# luego repretir el proceso de manera automatizada para 2012 a 2016
 # loops!    
       
 hom_16 = read.csv(paste(datos, "DEFUN16.csv", sep="/"), as.is=T, stringsAsFactors = F)      
 str(hom_16) # damn! qué son todas estas variables?
 View(hom_16)
-nrow(hom_16) # 685mil personas registradas
+nrow(hom_16) # 685mil personas registradas 
 
 # 1er paso es decidir qué variables nos interesan
 # estado y municipio ¿pero cuál? depende qué quieras ver, no hay info siempre para los 3
