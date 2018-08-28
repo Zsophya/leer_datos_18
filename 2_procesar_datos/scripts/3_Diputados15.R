@@ -2,17 +2,15 @@ rm(list=ls())
 setwd("~")
 
 ########################################################
-# Procesar Datos 2 - Real World Example:               #
+# Procesar Datos  - Real World Example:                #
 # Votaciones Diputados MR 2015                         #
-# Carolina Torreblanca - Periodismo de Datos ITAM      #
-# 22/04/2017                                           #
 ########################################################
 
-library(dplyr) # manipular data
-library(tidyr) # "tidy data" o el paquete que SIEMPRE van a prender
+require(pacman)
+p_load(tidyverse, stringr, foreign)
 
-dir1 <- "/Users/ppmerino/Dropbox (Personal)/Clases/ICAitam/ICAmerino/Clase 1 Procesar datos/Procesar datos/datos/Procesar Datos 2/resultados_dip_2015" # poner ruta 
-dir2 <- "/Users/ppmerino/Dropbox (Personal)/Clases/ICAitam/ICAmerino/Clase 1 Procesar datos/Procesar datos/datos/Procesar Datos 2/out" # poner ruta
+dir1 <- "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/2_procesar_datos/input" # poner ruta 
+dir2 <- "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/2_procesar_datos/output" # poner ruta
 
 datos <- read.csv(paste(dir1, "diputados.csv", sep="/"))
 
