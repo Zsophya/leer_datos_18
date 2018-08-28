@@ -15,9 +15,9 @@ require(stringr)
 require(foreign) 
 ??stringr # es muy util tambien googolear cran stringr funciona
 
-    datos = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/R_genero/Clase4/sinais/csvs"
-catalogos = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/R_genero/Clase4/sinais/catalogos"
-      out = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/R_genero/Clase4/out"
+    datos = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/2_procesar_datos/input/sinais/csvs"
+catalogos = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/2_procesar_datos/input/sinais/catalogo"
+      out = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/2_procesar_datos/output"
 
 # La estrategia de hoy va a ser abrir el csv de 2016 - procesarlo y
 # luego repretir el proceso de manera automatizada para 2003 a 2016
@@ -82,8 +82,8 @@ base$edo_civil = gsub("4", "Unión Libre", base$edo_civil)
 base$edo_civil = gsub("5", "Casado", base$edo_civil)      
 base$edo_civil = gsub("6", "Separado", base$edo_civil)      
 base$edo_civil = gsub("7", "", base$edo_civil)      
-base$edo_civil = gsub("8", "Menor de 12", base$edo_civil)      
-base$edo_civil = gsub("9", "No especificado", base$edo_civil)      
+base$edo_civil = str_replace(base$edo_civil, "8", "Menor de 12")       # como en la vida misma, 20 maneras de hacer la misma cosa
+base$edo_civil = str_replace( base$edo_civil, "9", "No especificado")      
 
 # se ve más feo el código - me late más el if_else para escolaridad
 # if_else es lo mismo que ifelse solo que de dplyr y más estricto
@@ -136,7 +136,7 @@ cat_causa = rename(cat_causa, causa_def=CLAVE, des_causa=DESCRIP)
 base_final = data.frame()
 
 # Paso 2: vector de los nombres de archivos - vamos a abrir 1 por 1 
-nombres <- c("DEFUN12.csv","DEFUN13.csv","DEFUN14.csv","DEFUN15.csv", "DEFUN16.csv")
+nombres <- c("DEFUN12.csv","DEFUN13.csv","DEFUN14.csv","DEFUN15.csv", "DEFUN16.csv") # les eché todo sinais pero para 2011 y antes cambia la codificacion de escolaridad etc
 
 # Paso 3: esto es para nosotras, es generar un progress bar para ver 
 # cuanto le falta a nuestro loop en recorrer todos los archivos del vector de arriba
@@ -169,7 +169,7 @@ pb = txtProgressBar(min=1, max=length(nombres), style=3)
      }
 rm(pb)
 ### wuuuuuu ahora tienen una base gigante de
-nrow(base_final) # 260007 personas asesinadas en el periodo
+nrow(base_final) # 114366 personas asesinadas en el periodo
 
 ####################################################################################
 # ahora sí editamos todas las variables 1 sola vez pero para tooooodoso los años ###
@@ -178,8 +178,8 @@ nrow(base_final) # 260007 personas asesinadas en el periodo
 base_final$edad = as.character(base_final$edad )
 
 base_final = mutate(base_final, tempo = substr(edad, 1,1),
-                     edad = ifelse(edad =="4998", NA, 
-                            ifelse(tempo =="4", substr(edad, 2, 4), 0)))
+                                 edad = ifelse(edad =="4998", NA, 
+                                        ifelse(tempo =="4", substr(edad, 2, 4), 0)))
 
 base_final$edad = as.numeric(base_final$edad)
 
@@ -223,7 +223,7 @@ por_sexo_escol = summarize(por_sexo_escol, tot = sum(tot, na.rm=T))
 por_sexo_escol = ungroup(por_sexo_escol)
 por_sexo_escol = group_by(por_sexo_escol, sexo)
 por_sexo_escol = mutate(por_sexo_escol, tot_por_sexo = sum(tot, na.rm=T),
-                        porcent = round(tot / tot_por_sexo * 100, digits=1))
+                                        porcent = round(tot / tot_por_sexo * 100, digits=1))
 
 por_sexo_escol = arrange(por_sexo_escol, -porcent)
 View(por_sexo_escol)
@@ -235,7 +235,7 @@ por_sexo_civil = summarize(por_sexo_civil, tot = sum(tot, na.rm=T))
 por_sexo_civil = ungroup(por_sexo_civil)
 por_sexo_civil = group_by(por_sexo_civil, sexo)
 por_sexo_civil = mutate(por_sexo_civil, tot_por_sexo = sum(tot, na.rm=T),
-                        porcent = round(tot / tot_por_sexo * 100, digits=1))
+                                             porcent = round(tot / tot_por_sexo * 100, digits=1))
 
 por_sexo_civil = arrange(por_sexo_civil, sexo, -porcent)
 rm(por_sexo_civil)
