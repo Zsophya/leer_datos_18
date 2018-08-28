@@ -11,7 +11,7 @@ setwd("~")
 
 # paso 1 en todo, pongan sus directorios
 
-inp = "/Users/carolinatorreblanca/Dropbox (Data4)/ICAitam/ICAmerino/Módulo 1 Procesar datos/Procesar_datos_1/input" 
+inp = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/2_procesar_datos/input" 
 out = "" # poner
 
 require(readxl)
@@ -34,7 +34,7 @@ nombres_futuros = c("year", "cve_ent", "ent", "bien_juridico", "tipo_delito", "s
 
 names(base)
 names(base)[1:9] # estos son los que quiero cambiar 
-names(base)[1:9] = nombres_futuros
+names(base)[1:9] <- nombres_futuros
 names(base) # done!
 
 
@@ -93,9 +93,8 @@ require(tidyverse) # este set de paquetes es el que usamos para hacer el 80% de 
 # de ahora en adelante vamos a ver (casi) todas las funciones de 2 maneras: nativo R y tidyverse/dplyr
 # Ustedes como cientistas pueden elegir la manera más rapida o que más les lata
 
-filtrada_2 = filter(base, tipo_delito=="Feminicidio") # si una funcion es de dplyr o tidyverse, no necesitan $
+filtrada_2 = filter(base, tipo_delito=="Feminicidio") # GRAN plus (y GRAN fuente de confisión): si una funcion es de dplyr o tidyverse, no necesitan $
 table(filtrada_2$tipo_delito)
-
 
 # para poner más de una condición podemos usar & , | < y > sin problema 
 # Cómo le harían, por ejemplo para quedarse solo con Feminicidio si el año es mayor a 2015 y rango_edad es menores
@@ -124,21 +123,21 @@ table(filtrada$subtipo) # variable inutil
 ### Tirar variables   ###
 #########################
 
-filtrada$sexo = NULL # opción 1 base de R
-filtrada = select(filtrada, -bien_juridico) # opción 2 tidyverse
-names(filtrada) # ni sexo ni bien jurÃ?dico
+filtrada$sexo = NULL # opción 1 base de R, ya lo habíamos visto
+filtrada = select(filtrada, -bien_juridico) # opción 2 tidyverse / select (o select not es como lo pienso yo)
+names(filtrada) # ni sexo ni bien jurídico
 
-# Tirar mÃ¡s de una variable a la vez? obvia / se puede de las dos maneras
-filtrada_tempo <- select(filtrada, -(tipo_delito:subtipo)) # si estÃ¡n juntas en la base con : y select
+# Tirar más de una variable a la vez? obvia / se puede de las dos maneras
+filtrada_tempo <- select(filtrada, -(tipo_delito:subtipo)) # si están juntas en la base con : y select
 names(filtrada_tempo) # bye variables
 
-# obvio select sirve no solo para decirle a R que variables no, sino tambiÃ©n para elegir variables sÃ?
-caro_rockea = select(filtrada, year, cve_ent, modalidad, Enero:Diciembre) # quÃ© le estoy diciendo?
+# obvio select sirve no solo para decirle a R que variables no, sino también para elegir variables sí?
+caro_rockea = select(filtrada, year, cve_ent, modalidad, Enero:Diciembre) # qué le estoy diciendo?
 View(caro_rockea)
 rm(caro_rockea)
-# como le dirÃ?amos que nos queremos quedar con cve_entidad, modalidad, year y solo enero a junio?
-su_ejemplo = select(filtrada, modalidad, year, cve_ent, Enero:Junio)
-
+# como le diríamos que nos queremos quedar con cve_entidad, modalidad, year y solo enero a junio?
+su_ejemplo = 
+  
 rm(filtrada_tempo, vean, su_ejemplo)
 
 # tirar 2 variables con NULL
@@ -168,8 +167,8 @@ ncol(base_ordenada_2)
 base_sorteada = arrange(filtrada, year) # siempre es ascendiente tons no se ve nada
 base_sorteada
 
-base_sorteada = arrange(filtrada, desc(year))
-base_sorteada # ahora sÃ?, de mayor a menor 
+base_sorteada = arrange(filtrada, desc(year)) # lo mismo funciona con arrange(filtrada, -year)
+base_sorteada # ahora sí, de mayor a menor 
 
 # oooo solo piquenle en la flechita de la variable en el View, estilo excel
 rm(base_sorteada, base_ordenada, base_ordenada_2)
@@ -192,12 +191,17 @@ summary(filtrada, useNA="ifany")
 # queremos sumar de Enero a diciembre y generar una nueva columna "total"
 # R piensa en columnas entonces cuando quieres que haga cosas sobre renglones tienes que especificar
 
+7 + 8 + 44 + 56 + NA 
+sum(c(7, 8, 44, 56, NA))
+sum(c(7, 8, 44, 56, NA), na.rm = TRUE)
+
+# esto está muy chido para vectores, asi funcionan las columnas en una base, por ejemplo, pero si queremos sumar filas?
 ??rowSums
 names(filtrada)[6:17]
 #Son los meses que queremos sumar
 filtrada$total = rowSums(filtrada[,6:17], na.rm = TRUE)
 # o lo que es lo mismo
-filtrada$total = rowSums (filtrada[,names(filtrada)[6:17]], na.rm = TRUE)
+filtrada$total = rowSums(filtrada[,names(filtrada)[6:17]], na.rm = TRUE)
 # o 
 filtrada$total = rowSums(filtrada[,c("Enero", "Febrero", "Marzo", "Abril", "Mayo",
                                      "Junio", "Julio", "Agosto", "Septiembre",
@@ -205,6 +209,7 @@ filtrada$total = rowSums(filtrada[,c("Enero", "Febrero", "Marzo", "Abril", "Mayo
 
 ### wuuuu! ya va quedando bella la base, hay que tirar los meses que ya no nos sirven
 filtrada = select(filtrada, inegi, year:rango_edad, total)
+
 ################
 ## summarize ###
 ################
@@ -215,8 +220,10 @@ table(filtrada$modalidad)
 table(filtrada$rango_edad)
 nrow(filtrada)
 
-# ¿Entonces qué hacemos para sacar el total de victimas de feminicidio por año entidad? 
+# ¿Entonces qué hacemos para sacar el total de victimas de feminicidio por año entidad?
 # Depende como quieras tu base - yo quiero una sin distinción de grupos de edad
+
+# Esto es TODO en el procesamiento de datos: ¿qué debería ser cada renglón?
 
 # Paso 1: agrupar
 filtrada = group_by(filtrada, inegi, year, cve_ent, ent, modalidad) # todas menos edad
@@ -241,18 +248,17 @@ View(base_ancha)
 names(base_ancha)
 
 # otra vez pedo de los nombres con espacio
-
 nombres_anchos = c("arma_blanca", "arma_fuego", "otro", "no_especificado")
 names(base_ancha)[5:ncol(base_ancha)] = nombres_anchos
 View(base_ancha)
 
 # de ancha a larga
-base_larga = gather(base_ancha, modalidatzzz, totaltzzz, arma_blanca:no_especificado ) # 3 cosas ahora 1: como se va a llamar la variable con los nombres, con los datos y cuales 
+base_larga = gather(base_ancha, modalidatzzz, totaltzzz, arma_blanca:no_especificado) # 3 cosas ahora 1: como se va a llamar la variable con los nombres, con los datos y cuales 
 View(base_larga)
 table(base_larga$modalidatzzz)
 
-# ufff no, queremos quitar esos _ de esa variable - Â¿como le hacemos?
-# evidentemente hay varias estrategias, veamo gsub que es la mÃ¡s intuitiva 
+# ufff no, queremos quitar esos _ de esa variable - ¿como le hacemos?
+# evidentemente hay varias estrategias, veamo gsub que es la más intuitiva 
 
 base_larga$modalidatzzz = gsub("_", " ", base_larga$modalidatzzz)
 
@@ -276,7 +282,7 @@ pob_1 = read.csv(paste(inp, "pob_mun_sexo_3015.csv", sep="/"), encoding="UTF-8")
 str(pob_1)
 table(pob_1$año)
 
-pob_2 = read.csv(paste(inp, "pob1618.csv", sep="/"), , encoding="UTF-8")
+pob_2 = read.csv(paste(inp, "pob1618.csv", sep="/"), encoding="UTF-8")
 str(pob_2)
 table(pob_2$año)
 
@@ -291,7 +297,7 @@ table(pob_2$sexo)
 pob_2 = filter(pob_2, año <= 2017 & sexo =="Mujeres")
 pob_2$sexo = gsub("Mujeres", "Mujer", pob_2$sexo)
 
-# en  quÃ© parte de esta base viene el estado?
+# en  qué parte de esta base viene el estado?
 # exacto pero son los primeros DOS digitos SOLO cuando es de 5 -
 # aguascalientes y durango No son el mismo estado!!! formatC
 
@@ -311,7 +317,7 @@ table(pob_2$cve_ent) # Done
 # queremos colapsar sumando - primer paso agrupar y luego un summarize
 
 pob_1 = group_by(pob_1, cve_ent, año)
-pob_1 = summarize(pob_1, pob_tot = sum(pob, na.rm=T)) # Â¿quÃ© le pasÃ³ a sexo?
+pob_1 = summarize(pob_1, pob_tot = sum(pob, na.rm=T)) # ¿qué le pasó a sexo?
 
 pob_2 = group_by(pob_2, cve_ent, año)
 pob_2 = summarize(pob_2, pob_tot = sum(pob, na.rm=T)) 
@@ -323,9 +329,9 @@ table(pob_junta$año) # supertz
 
 rm(pob_1, pob_2)
 
-# ahora solo hay que juntar poblaciÃ³n con feminicidos - 
-# pero no nos interesa juntar cualquier renglÃ³n con cualquier renglon
-# sino mismo aÃ±o misma entidad - eso se llama join (merge)
+# ahora solo hay que juntar población con feminicidos - 
+# pero no nos interesa juntar cualquier renglón con cualquier renglon
+# sino mismo año misma entidad - eso se llama join (merge)
 names(base_ancha) 
 names(pob_junta) # o a los 2 le pones el mismo nombre o especificas 
 
@@ -348,11 +354,11 @@ base_final$tasa_total = round(base_final$tasa_total, digits =2)
 # eh ahí la ventaja del mutate sobre el $
 
 base_final = mutate(base_final, tasa_arma_fuego = arma_fuego / pob_tot * 100000,
-                    tasa_arma_blanca = arma_blanca / pob_tot * 100000)
+                               tasa_arma_blanca = arma_blanca / pob_tot * 100000)
 
 # podríamos hasta redondear en el mismo comando
 base_final = mutate(base_final, tasa_otro = round(otro / pob_tot * 100000, digits =2),
-                    tasa_ne =  round(no_especificado / pob_tot * 100000, digits =2))
+                                  tasa_ne =  round(no_especificado / pob_tot * 100000, digits =2))
 
 base_final$digits <- NULL
 base_final$tasa_arma_fuego = round(base_final$tasa_arma_fuego, digits =2)
