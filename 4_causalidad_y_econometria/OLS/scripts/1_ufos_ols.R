@@ -7,7 +7,8 @@ setwd("~")
 ###########################
 
 require(pacman)
-p_load(foreign, tidyverse, readstata13, GGally, car)
+p_load(foreign, tidyverse, readstata13, GGally, car, devtools)
+install_github("IndrajeetPatil/ggstatsplot")
 
 inp = "/Users/carolinatorreblanca/Dropbox (Data4)/Data Civica/Clases/leer_datos_18/4_causalidad_y_econometria/OLS/datos"
 
@@ -19,70 +20,160 @@ data <- read.dta13(paste(inp, "ufos_final.dta", sep="/"))
 # Entendamos nuestros datos #
 #############################
 
-summary(data)
+summary(data) # datos de avistamientos a nivel condado y de resultados de las primarias
 str(data)
-dim(data)
+View(data)
+
+# una buena primera cosa de hacer sería renombrar las vars que vamos a usar para que todo tuviera sentido
+names(data)
+
+data = rename(data, pobtot=pop010210, evan_mil = evanrate, catolicos_mil=cthrate, protes_mil=pcrate,
+                    porcent_repub_12=Rep_2012, porcent_demo_12=Dem_2012)
+
+# queremos ver la relación entre avistamientos * tasa * y % candidato; ¿por qué tasa?
+
+data = mutate(data, tasa_ufos = round(tot_ufos / pobtot * 1000, 1),
+                      gano_12 = ifelse(porcent_demo_12 > porcent_repub_12 & is.na(porcent_repub_12)==F, 
+                                       "Obama", "Romney"))
+summary(data$tasa_ufos)
+
+# hipótesis: condados que votaron mucho por trump van a tener muchos avistamientos
 
 #######################
 # Algunas grafiquitas #
 #######################
 
-ggplot(data, aes(x=tbeijing, y=tlondres)) +
-  geom_point() +
-  geom_text(aes(label=codigo), hjust=-0.2) +
-  stat_smooth(method="lm", se=F,formula=y ~ x + I(x^2), color="#cb181d")
+# Trump
+ggplot(data, aes(y=tasa_ufos, x=porcTrump)) +
+  geom_point(color="red", alpha=.5) +
+  stat_smooth(method="lm", se=F,formula=y ~ x, color="black")
 
-ggplot(data, aes(x=expvida, y=tlondres)) +
-  geom_point() +
-  geom_text(aes(label=codigo), hjust=-0.2) +
-  stat_smooth(method="lm", se=T,formula=y ~ x + I(x^2), color="#cb181d") +
-  scale_x_log10()
+ggplot(subset(data, tasa_ufos < 3), aes(y=tasa_ufos, x=porcTrump)) +
+  geom_point(color="red", alpha=.5) +
+  stat_smooth(method="lm", se=F,formula=y ~ x, color="black")
 
-ggplot(data, aes(x=femlab, y=tlondres)) +
-  geom_point() +
-  geom_text(aes(label=codigo), hjust=-0.2) +
-  stat_smooth(method="lm", se=F,formula=y ~ x + I(x^2), color="#cb181d")
+ggplot(subset(data, tasa_ufos < 2), aes(y=tasa_ufos, x=porcTrump)) +
+  geom_point(color="red", alpha=.5) +
+  stat_smooth(method="lm", se=F,formula=y ~ x, color="black") 
 
-ggplot(data, aes(x=gnppc, y=tlondres)) +
-  geom_point() +
-  geom_text(aes(label=codigo), hjust=-0.2) +
-  stat_smooth(method="lm", se=F,formula=y ~ x + I(x^2), color="#cb181d")
+# Hillary 
 
-ggplot(data, aes(x=tax, y=tlondres)) +
-  geom_point() +
-  geom_text(aes(label=codigo), hjust=-0.2) +
-  stat_smooth(method="lm", se=F,formula=y ~ x + I(x^2), color="#cb181d")
+ggplot(data, aes(y=tasa_ufos, x=porcClinton)) +
+geom_point(color="blue", alpha=.5) +
+stat_smooth(method="lm", se=F,formula=y ~ x, color="black")
+  
+ ggplot(subset(data, tasa_ufos < 3), aes(y=tasa_ufos, x=porcClinton)) +
+ geom_point(color="blue", alpha=.5) +
+ stat_smooth(method="lm", se=F,formula=y ~ x, color="black")
 
-ggplot(data, aes(x=gdp11_bill, y=tlondres)) +
-  geom_point() +
-  geom_text(aes(label=codigo), hjust=-0.2) +
-  stat_smooth(method="lm", se=F,formula=y ~ x + I(x^2), color="#cb181d")
+# Rubio
+
+ ggplot(data, aes(y=tasa_ufos, x=porcRubio)) +
+   geom_point(color="red", alpha=.5) +
+   stat_smooth(method="lm", se=F,formula=y ~ x, color="black")
+ 
+ ggplot(subset(data, tasa_ufos < 3), aes(y=tasa_ufos, x=porcRubio)) +
+   geom_point(color="red", alpha=.5) +
+   stat_smooth(method="lm", se=F,formula=y ~ x, color="black") 
+ 
+# Sanders
+
+ggplot(data, aes(y=tasa_ufos, x=porcSanders)) +
+geom_point(color="blue", alpha=.5) +
+stat_smooth(method="lm", se=F,formula=y ~ x, color="black")
+ 
+ggplot(subset(data, tasa_ufos < 3), aes(y=tasa_ufos, x=porcSanders)) +
+geom_point(color="blue", alpha=.5) +
+stat_smooth(method="lm", se=F,formula=y ~ x, color="black")
+
+## Suena a que están relacionadas estas variables, a ver qué dice esto. 
 
 ### kdensities ###
-plot(density(data$tlondres, na.rm=T)) # Esta es la opción base, pero no pueden tener missings, por eso el na.rm=T
-ggplot(data, aes(x=tlondres)) + geom_density() # ggplot ignora solito los NAs, pero nos avisa que existen
-ggplot(data, aes(x=glondres)) + geom_density()
-ggplot(data, aes(x=gdp11_bill)) + geom_density()
-ggplot(data, aes(x=femlab)) + geom_density()
-ggplot(data, aes(x=tax)) + geom_density()
-ggplot(data, aes(x=expvida)) + geom_density()
-ggplot(data, aes(x=gnppc)) + geom_density()
 
+ggplot(data, aes(x=porcTrump)) +
+geom_density() # 
 
-# o podemos entender distribuciones entre submuestras
+ggplot(data, aes(x=porcSanders)) +
+geom_density()
 
-ggplot() + 
-  geom_density(data=subset(data, tlondres>0), aes(x=expvida), fill="blue", alpha=0.3) +
-  geom_density(data=subset(data, tlondres==0), aes(x=expvida), fill="red", alpha=0.3)
+ggplot(data, aes(x=porcRubio)) +
+geom_density()
 
+ggplot(data, aes(x=porcCruz)) + 
+geom_density()
 
+ggplot(data, aes(x=porcClinton)) + 
+geom_density()
 
+ggplot(data, aes(x=tasa_ufos)) + 
+geom_density()
+
+ggplot(data, aes(x=evan_mil)) + 
+geom_density()
+
+# o a ver
+ggplot(data, aes(x=tasa_ufos, fill=gano_12)) + 
+  geom_density(alpha=.5)
+
+ggplot(data, aes(x=evan_mil, fill=gano_12)) + 
+  geom_density(alpha=.5)
+
+################
 ### boxplot ###
-tempo <- data %>%
-  select(codigo, tlondres, glondres, expvida, tax, femlab, gdp11_bill) %>%
-  melt(id="codigo")
+###############
 
-ggplot(tempo, aes(x=variable, y=value, fill=variable)) + geom_boxplot()
+ggplot(data, aes(x=gano_12, y=tasa_ufos, fill=gano_12)) + 
+geom_boxplot() +
+theme_minimal()
+
+# Ok, pero ahora según quién gano la primaria?
+data$ganador_republicano = ""
+data$ganador_democrata = ""
+
+# uff vamos a programar una función, que no cunda el pánico
+
+limpiar <- function(x) {
+  x = ifelse(is.na(x)==T, 0, x)
+}
+
+tempo <- select(data, porcBush, porcCarson, porcCruz:porcRubio, porcTrump)
+tempo <- mutate_at(tempo, 1:ncol(tempo), funs(limpiar))
+
+for(x in 1:nrow(data)){
+  data$ganador_republicano[x] <- names(tempo)[which.max(tempo[x, 1:ncol(tempo)])]
+}
+
+table(data$ganador_republicano)
+
+tempo <- select(data, porcClinton, porcSanders) # nos quedamos solo con los competidores 
+tempo <- mutate_at(tempo, 1:ncol(tempo), funs(limpiar))
+
+for(x in 1:nrow(data)){
+  data$ganador_democrata[x] <- names(tempo)[which.max(tempo[x, 1:ncol(tempo)])]
+}
+table(data$ganador_democrata)
+
+data = mutate(data, ganador_democrata = ifelse(ganador_democrata=="porcClinton" & porcClinton==0, NA, ganador_democrata),
+                    ganador_democrata = ifelse(ganador_democrata=="porcSanders" & porcSanders==0, NA, ganador_democrata),
+                    ganador_republicano = ifelse((porcTrump==0 & ganador_republicano == "porcTrump") | 
+                                                 (porcCarson==0 & ganador_republicano == "porcCarson") |
+                                                 (porcCruz==0 & ganador_republicano == "porcCruz") |
+                                                 (porcKasich==0 & ganador_republicano == "porcKasich")|
+                                                 (porcRubio==0 & ganador_republicano == "porcRubio")|
+                                                 (porcBush==0 & ganador_republicano == "porcBush"), NA, ganador_republicano))
+
+table(data$ganador_democrata)
+table(data$ganador_republicano)
+
+ggplot(data, aes(x=ganador_republicano, y=tasa_ufos, fill=ganador_republicano)) + 
+  geom_boxplot() +
+  theme_minimal()
+
+ggplot(data, aes(x=ganador_democrata, y=tasa_ufos, fill=ganador_democrata)) + 
+  geom_boxplot() +
+  theme_minimal()
+
+
 
 ### tabulate ###  
 table(data$tlondres, data$glondres)
